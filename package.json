@@ -1,0 +1,9 @@
+{
+  "name": "handy-stt-cuda",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^6.0.3"
+  }
+}

@@ -1,0 +1,6 @@
+# dependencies (bun install)
+node_modules
+
+# upstream sources — fetched by scripts/clone-libs.ts, not vendored
+/Handy
+/transcribe-rs

@@ -55,42 +55,30 @@ async function cloneLib(lib: Lib): Promise<CloneOutcome> {
 
   // Already a git checkout — leave it alone (re-run safe, preserves local edits).
   if (existsSync(join(dest, '.git'))) {
-    console.log(
-      `${pc.yellow('•')} ${pc.bold(lib.name)} ${pc.dim('already present — skipping')}`,
-    );
+    console.log(`${pc.yellow('•')} ${pc.bold(lib.name)} ${pc.dim('already present — skipping')}`);
     return 'skipped';
   }
 
   // Path exists but isn't a git repo: refuse to clobber it; let the user decide.
   if (existsSync(dest)) {
-    throw new Error(
-      `${lib.name}/ exists but is not a git repository. Remove or move it, then re-run.`,
-    );
+    throw new Error(`${lib.name}/ exists but is not a git repository. Remove or move it, then re-run.`);
   }
 
-  console.log(
-    `${pc.cyan('↓')} Cloning ${pc.bold(lib.name)} ${pc.dim(`from ${lib.url}`)} …`,
-  );
+  console.log(`${pc.cyan('↓')} Cloning ${pc.bold(lib.name)} ${pc.dim(`from ${lib.url}`)} …`);
   if (lib.ref) {
     await $`git clone ${lib.url} ${dest}`;
     await $`git -C ${dest} checkout ${lib.ref}`;
-    console.log(
-      `${pc.green('✓')} ${pc.bold(lib.name)} ${pc.dim(`cloned @ ${lib.ref}`)}`,
-    );
+    console.log(`${pc.green('✓')} ${pc.bold(lib.name)} ${pc.dim(`cloned @ ${lib.ref}`)}`);
   } else {
     // Shallow clone — we only need the working tree to build from.
     await $`git clone --depth 1 ${lib.url} ${dest}`;
-    console.log(
-      `${pc.green('✓')} ${pc.bold(lib.name)} ${pc.dim('cloned (latest)')}`,
-    );
+    console.log(`${pc.green('✓')} ${pc.bold(lib.name)} ${pc.dim('cloned (latest)')}`);
   }
   return 'cloned';
 }
 
 export async function cloneLibs(): Promise<void> {
-  console.log(
-    pc.bold(pc.cyan('\nCloning source libraries')) + pc.dim(` into ${ROOT}\n`),
-  );
+  console.log(pc.bold(pc.cyan('\nCloning source libraries')) + pc.dim(` into ${ROOT}\n`));
 
   let cloned = 0;
   let skipped = 0;
@@ -113,12 +101,7 @@ export async function cloneLibs(): Promise<void> {
 if (import.meta.main) {
   cloneLibs().catch((err: unknown) => {
     const message = err instanceof Error ? err.message : String(err);
-    console.error(
-      '\n' +
-        pc.red(pc.bold('✗ clone-libs failed')) +
-        pc.dim(' — ') +
-        pc.red(message),
-    );
+    console.error(`\n${pc.red(pc.bold('✗ clone-libs failed'))}${pc.dim(' — ')}${pc.red(message)}`);
     process.exit(1);
   });
 }

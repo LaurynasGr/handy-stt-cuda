@@ -3,13 +3,13 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "lint": "biome lint .",
-    "format": "biome format --write .",
-    "check": "biome check --write ."
+    "lint": "concurrently 'bun biome check' 'tsc --noEmit'",
+    "lint:fix": "bun biome check --fix && bun run lint"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.1",
     "@types/bun": "latest",
+    "concurrently": "^10.0.3",
     "typescript": "^6.0.3"
   },
   "dependencies": {

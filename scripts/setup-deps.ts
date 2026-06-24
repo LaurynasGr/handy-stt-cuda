@@ -43,8 +43,7 @@ const APT_PACKAGES = [
   'libclang-common-21-dev', // clang headers (stdbool.h) for whisper-rs-sys bindgen
 ];
 
-const DRY_RUN =
-  process.argv.includes('--dry-run') || process.argv.includes('-n');
+const DRY_RUN = process.argv.includes('--dry-run') || process.argv.includes('-n');
 
 /** Run a command with the terminal attached so sudo can prompt for a password. */
 async function run(cmd: string[]): Promise<void> {
@@ -64,52 +63,34 @@ async function run(cmd: string[]): Promise<void> {
 
 export async function setupDeps(): Promise<void> {
   if (process.platform !== 'linux' || !Bun.which('apt-get')) {
-    throw new Error(
-      'setup-deps targets Debian/Ubuntu (apt-get not found). See the Handy BUILD.md for other distros.',
-    );
+    throw new Error('setup-deps targets Debian/Ubuntu (apt-get not found). See the Handy BUILD.md for other distros.');
   }
 
-  console.log(
-    pc.bold(pc.cyan('\nInstalling build dependencies')) +
-      pc.dim(` — ${APT_PACKAGES.length} apt packages`),
-  );
+  console.log(pc.bold(pc.cyan('\nInstalling build dependencies')) + pc.dim(` — ${APT_PACKAGES.length} apt packages`));
   if (DRY_RUN) {
     console.log(pc.yellow('(dry run — nothing will be installed)'));
   }
-  console.log(
-    pc.dim('\nsudo is required; you may be prompted for your password.\n'),
-  );
+  console.log(pc.dim('\nsudo is required; you may be prompted for your password.\n'));
 
   await run(['sudo', 'apt-get', 'update']);
   await run(['sudo', 'apt-get', 'install', '-y', ...APT_PACKAGES]);
 
   if (DRY_RUN) {
-    console.log(
-      '\n' +
-        pc.yellow(pc.bold('Dry run complete')) +
-        pc.dim(' — nothing was installed.'),
-    );
+    console.log(`\n${pc.yellow(pc.bold('Dry run complete'))}${pc.dim(' — nothing was installed.')}`);
     return;
   }
 
   console.log(
     '\n' +
       pc.green(pc.bold('✓ Build dependencies installed.')) +
-      pc.dim(
-        '\nThe CUDA toolkit and NVIDIA driver are not managed here and must already be present.',
-      ),
+      pc.dim('\nThe CUDA toolkit and NVIDIA driver are not managed here and must already be present.'),
   );
 }
 
 if (import.meta.main) {
   setupDeps().catch((err: unknown) => {
     const message = err instanceof Error ? err.message : String(err);
-    console.error(
-      '\n' +
-        pc.red(pc.bold('✗ setup-deps failed')) +
-        pc.dim(' — ') +
-        pc.red(message),
-    );
+    console.error(`\n${pc.red(pc.bold('✗ setup-deps failed'))}${pc.dim(' — ')}${pc.red(message)}`);
     process.exit(1);
   });
 }

@@ -6,6 +6,9 @@ help:
 clone-libs: ## Clone all required external libraries
 	bun ./scripts/clone-libs.ts
 
+setup-deps: ## Setup all OS-level dependencies
+	bun ./scripts/setup-deps.ts
+
 # Misc tasks
 clean-files: ## Remove all generated files
 	rm -rf node_modules && \

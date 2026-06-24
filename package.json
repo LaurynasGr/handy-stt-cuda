@@ -2,7 +2,13 @@
   "name": "handy-stt-cuda",
   "type": "module",
   "private": true,
+  "scripts": {
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome check --write ."
+  },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.1",
     "@types/bun": "latest",
     "typescript": "^6.0.3"
   }

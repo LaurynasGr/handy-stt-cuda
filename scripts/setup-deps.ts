@@ -15,6 +15,7 @@
  */
 
 import pc from 'picocolors';
+import { cli, DRY_RUN, run } from './utils';
 
 /**
  * The apt packages the CUDA build needs, grouped by why. This is the exact set
@@ -43,24 +44,6 @@ const APT_PACKAGES = [
   'libclang-common-21-dev', // clang headers (stdbool.h) for whisper-rs-sys bindgen
 ];
 
-const DRY_RUN = process.argv.includes('--dry-run') || process.argv.includes('-n');
-
-/** Run a command with the terminal attached so sudo can prompt for a password. */
-async function run(cmd: string[]): Promise<void> {
-  console.log(pc.dim(`$ ${cmd.join(' ')}`));
-  if (DRY_RUN) return;
-
-  const proc = Bun.spawn(cmd, {
-    stdin: 'inherit',
-    stdout: 'inherit',
-    stderr: 'inherit',
-  });
-  const code = await proc.exited;
-  if (code !== 0) {
-    throw new Error(`\`${cmd.join(' ')}\` exited with code ${code}`);
-  }
-}
-
 export async function setupDeps(): Promise<void> {
   if (process.platform !== 'linux' || !Bun.which('apt-get')) {
     throw new Error('setup-deps targets Debian/Ubuntu (apt-get not found). See the Handy BUILD.md for other distros.');
@@ -88,9 +71,5 @@ export async function setupDeps(): Promise<void> {
 }
 
 if (import.meta.main) {
-  setupDeps().catch((err: unknown) => {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error(`\n${pc.red(pc.bold('✗ setup-deps failed'))}${pc.dim(' — ')}${pc.red(message)}`);
-    process.exit(1);
-  });
+  await cli('setup-deps', setupDeps);
 }

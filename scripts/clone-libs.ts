@@ -22,6 +22,7 @@ import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { $ } from 'bun';
 import pc from 'picocolors';
+import { cli } from './utils';
 
 interface Lib {
   /** Directory name created in the repo root. Must match the path the build expects. */
@@ -99,9 +100,5 @@ export async function cloneLibs(): Promise<void> {
 }
 
 if (import.meta.main) {
-  cloneLibs().catch((err: unknown) => {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error(`\n${pc.red(pc.bold('✗ clone-libs failed'))}${pc.dim(' — ')}${pc.red(message)}`);
-    process.exit(1);
-  });
+  await cli('clone-libs', cloneLibs);
 }

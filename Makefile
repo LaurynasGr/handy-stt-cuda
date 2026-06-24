@@ -19,6 +19,9 @@ patch-handy: ## Patch Handy's Cargo.toml for the local CUDA transcribe-rs
 build: ## Build Handy with CUDA (produces a .deb)
 	bun ./scripts/build.ts
 
+install: ## Install the built .deb (quit, dpkg -i, relaunch)
+	bun ./scripts/install.ts
+
 # Code quality
 lint: ## Run linters
 	bun run lint

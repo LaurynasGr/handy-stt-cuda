@@ -18,16 +18,15 @@
  *   bun run scripts/build.ts --dry-run   # print the env + command, build nothing
  */
 
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import pc from 'picocolors';
-import { cli, DRY_RUN } from './utils';
+import { cli, DEB_DIR, DRY_RUN, findDeb } from './utils';
 
 const ROOT = resolve(import.meta.dir, '..');
 const HANDY = join(ROOT, 'Handy');
 const SRC_TAURI = join(HANDY, 'src-tauri');
-const DEB_DIR = join(SRC_TAURI, 'target', 'release', 'bundle', 'deb');
 const CUDA_PATH = process.env.CUDA_PATH ?? '/usr/local/cuda';
 
 /** GPU compute capability for CUDAARCHS — auto-detect (RTX 4090 = 89), else fall back. */
@@ -75,15 +74,6 @@ async function preflight(): Promise<void> {
       throw new Error('CUDA math_functions.h is not glibc-patched\n  Run: make patch-cuda-headers');
     }
   }
-}
-
-/** The newest .deb in the bundle dir (the one the build just produced), if any. */
-function findDeb(): string | undefined {
-  if (!existsSync(DEB_DIR)) return undefined;
-  const debs = readdirSync(DEB_DIR)
-    .filter((f) => f.endsWith('.deb'))
-    .map((f) => join(DEB_DIR, f));
-  return debs.sort((a, b) => statSync(b).mtimeMs - statSync(a).mtimeMs)[0];
 }
 
 /**

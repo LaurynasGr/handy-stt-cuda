@@ -3,21 +3,16 @@
  * scripts/patch-handy.ts
  *
  * Patches the cloned Handy source so it builds against the local, CUDA-enabled
- * transcribe-rs:
- *
- *   Handy/src-tauri/Cargo.toml
- *     - point every `transcribe-rs` dependency at the local ../../transcribe-rs
- *       checkout (cargo requires one canonical source across all target blocks),
- *     - switch the Linux target's whisper backend from `whisper-vulkan` to
- *       `whisper-cuda`.
- *
- *   Handy/src-tauri/tauri.conf.json
- *     - tag the app version with `+cuda` so the installed build is identifiable
- *       (build metadata = equal precedence, so the updater won't replace it).
+ * transcribe-rs. In Handy/src-tauri/Cargo.toml it:
+ *   - points every `transcribe-rs` dependency at the local ../../transcribe-rs
+ *     checkout (cargo requires one canonical source across all target blocks),
+ *   - switches the Linux target's whisper backend from `whisper-vulkan` to
+ *     `whisper-cuda`.
  *
  * Runs against the cloned Handy working tree (clone-libs first). Idempotent and
  * supports --dry-run. It deliberately does NOT touch Cargo.lock — cargo
- * regenerates that from these manifests on the next build.
+ * regenerates that from the manifest on the next build. The app version is
+ * tagged (+cuda.<timestamp>) by build.ts, not here.
  *
  * Usage:
  *   bun run scripts/patch-handy.ts
@@ -32,7 +27,6 @@ import { cli, DRY_RUN } from './utils';
 const ROOT = resolve(import.meta.dir, '..');
 const SRC_TAURI = join(ROOT, 'Handy', 'src-tauri');
 const CARGO_TOML = join(SRC_TAURI, 'Cargo.toml');
-const TAURI_CONF = join(SRC_TAURI, 'tauri.conf.json');
 
 /** One named text transform on a file's contents. */
 interface Edit {
@@ -52,15 +46,6 @@ const CARGO_EDITS: Edit[] = [
     // Only the Linux block has the bare ["whisper-vulkan"]; Windows keeps its
     // ["whisper-vulkan", "ort-directml"] (different string, left untouched).
     apply: (c) => c.replaceAll('["whisper-vulkan"]', '["whisper-cuda"]'),
-  },
-];
-
-const TAURI_EDITS: Edit[] = [
-  {
-    label: 'tag the app version with +cuda',
-    // First "version": "x.y.z" is the top-level app version. The pattern can't
-    // match an already-tagged "x.y.z+cuda", so this is idempotent.
-    apply: (c) => c.replace(/"version": "(\d+\.\d+\.\d+)"/, '"version": "$1+cuda"'),
   },
 ];
 
@@ -95,7 +80,7 @@ export async function patchHandy(): Promise<void> {
   if (DRY_RUN) console.log(pc.yellow('(dry run — no files will be written)'));
 
   console.log(pc.bold(`\n${CARGO_TOML}`));
-  const cargoChanged = await patchFile(CARGO_TOML, CARGO_EDITS, (c) => {
+  const changed = await patchFile(CARGO_TOML, CARGO_EDITS, (c) => {
     if (/transcribe-rs = \{ version = "/.test(c)) {
       return 'a transcribe-rs dependency still points at the registry';
     }
@@ -108,21 +93,15 @@ export async function patchHandy(): Promise<void> {
     return null;
   });
 
-  console.log(pc.bold(`\n${TAURI_CONF}`));
-  const confChanged = await patchFile(TAURI_CONF, TAURI_EDITS, (c) =>
-    /"version": "\d+\.\d+\.\d+\+cuda"/.test(c) ? null : 'the app version is not tagged with +cuda',
-  );
-
   if (DRY_RUN) {
     console.log(`\n${pc.yellow(pc.bold('Dry run complete'))}${pc.dim('.')}`);
     return;
   }
 
-  const updated = (cargoChanged ? 1 : 0) + (confChanged ? 1 : 0);
-  if (updated === 0) {
-    console.log(`\n${pc.green(pc.bold('✓ Already patched'))}${pc.dim(' — nothing to do.')}`);
+  if (changed) {
+    console.log(`\n${pc.green(pc.bold('✓ Handy Cargo.toml patched'))}${pc.dim('.')}`);
   } else {
-    console.log(`\n${pc.green(pc.bold('✓ Handy source patched'))}${pc.dim(` — ${updated} file(s) updated.`)}`);
+    console.log(`\n${pc.green(pc.bold('✓ Already patched'))}${pc.dim(' — nothing to do.')}`);
   }
 }
 

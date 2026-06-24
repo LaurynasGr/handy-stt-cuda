@@ -10,6 +10,9 @@ clone-libs: ## Clone all required external libraries
 setup-deps: ## Setup all OS-level dependencies
 	bun ./scripts/setup-deps.ts
 
+patch-cuda-headers: ## Patch CUDA headers for the system glibc
+	bun ./scripts/patch-cuda-headers.ts
+
 # Code quality
 lint: ## Run linters
 	bun run lint

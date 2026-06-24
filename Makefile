@@ -13,6 +13,9 @@ setup-deps: ## Setup all OS-level dependencies
 patch-cuda-headers: ## Patch CUDA headers for the system glibc
 	bun ./scripts/patch-cuda-headers.ts
 
+patch-handy: ## Patch Handy source (Cargo.toml + tauri.conf.json) for CUDA
+	bun ./scripts/patch-handy.ts
+
 # Code quality
 lint: ## Run linters
 	bun run lint
